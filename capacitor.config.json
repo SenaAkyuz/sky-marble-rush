@@ -1,0 +1,11 @@
+{
+  "appId": "com.ordino.skymarblerush",
+  "appName": "Sky Marble Rush",
+  "webDir": "www",
+  "backgroundColor": "#8FD3FF",
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": false, "backgroundColor": "#8FD3FF", "showSpinner": false, "androidScaleType": "CENTER_CROP" }
+  },
+  "ios": { "contentInset": "never", "scrollEnabled": false },
+  "android": { "allowMixedContent": false }
+}

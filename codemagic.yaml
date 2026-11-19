@@ -1,0 +1,73 @@
+# Codemagic: iOS -> TestFlight, Android -> Google Play internal track
+# One-time setup in Codemagic (Team settings):
+#  - App Store Connect API key integration named "Ordino ASC"
+#  - Android code signing: upload keystore with reference name "sky_marble_upload"
+#  - Environment group "google_play" with GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (Play Console service account JSON)
+workflows:
+  ios-release:
+    name: iOS - TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Ordino ASC
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.ordino.skymarblerush
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+        APP_STORE_APPLE_ID: 0000000000   # App Store Connect > App Information > Apple ID
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install and build web
+        script: |
+          npm ci
+          npm run build
+          npx cap sync ios
+      - name: Signing profiles
+        script: xcode-project use-profiles
+      - name: Build number
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          cd ios/App && agvtool new-version -all $((LATEST + 1))
+      - name: Build IPA
+        script: xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+  android-release:
+    name: Android - Play internal
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      android_signing:
+        - sky_marble_upload
+      groups:
+        - google_play
+      vars:
+        PACKAGE_NAME: com.ordino.skymarblerush
+      node: 22
+      java: 21
+    scripts:
+      - name: Install and build web
+        script: |
+          npm ci
+          npm run build
+          npx cap sync android
+      - name: Build AAB
+        script: |
+          LATEST=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" 2>/dev/null || echo 0)
+          cd android && chmod +x gradlew && ./gradlew bundleRelease -PversionCode=$((LATEST + 1))
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true

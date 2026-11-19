@@ -1,0 +1,20 @@
+// Build: bundle src/main.js with esbuild, inline into src/template.html -> dist/<slug>-<version>.html
+import { build } from "esbuild";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+const root = path.dirname(fileURLToPath(import.meta.url));
+const out = await build({ entryPoints: [path.join(root, "src/main.js")], bundle: true, minify: true, format: "iife", write: false, target: "es2019", legalComments: "none", define: { __QA__: process.env.QA === "1" || process.argv.includes("--qa") ? "true" : "false" } });
+let code = out.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
+const tpl = fs.readFileSync(path.join(root, "src/template.html"), "utf8");
+const cfg = fs.readFileSync(path.join(root, "src/config.inline.js"), "utf8");
+const str = fs.readFileSync(path.join(root, "src/strings.inline.js"), "utf8");
+const fav = fs.existsSync(path.join(root, "assets/favicon.png")) ? "data:image/png;base64," + fs.readFileSync(path.join(root, "assets/favicon.png")).toString("base64") : "data:image/png;base64,";
+const version = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).gameVersion || "v01";
+const html = tpl.replace("%%FAVICON%%", () => fav).replace("%%CONFIG%%", () => cfg).replace("%%STRINGS%%", () => str).replace("%%CODE%%", () => code);
+fs.mkdirSync(path.join(root, "dist"), { recursive: true });
+const file = path.join(root, "dist", `sky-marble-rush-${version}.html`);
+fs.writeFileSync(file, html);
+fs.mkdirSync(path.join(root, "www"), { recursive: true });
+fs.writeFileSync(path.join(root, "www", "index.html"), html);
+console.log(file, html.length, "bytes");
