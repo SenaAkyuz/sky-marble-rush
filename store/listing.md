@@ -1,6 +1,6 @@
 # Sky Marble Rush: mağaza metinleri ve form cevapları
 
-Paket / Bundle ID: `com.ordino.skymarblerush` · Sürüm 1.0.0 · Kategori: Oyunlar › Arcade (ikincil: Aksiyon)
+Paket / Bundle ID: `com.theordino.skymarblerush` · Sürüm 1.0.0 · Kategori: Oyunlar › Arcade (ikincil: Aksiyon)
 Geliştirici: Ordino Games · Fiyat: Ücretsiz · Reklam içerir (AdMob) · Uygulama içi satın alma yok
 
 ---

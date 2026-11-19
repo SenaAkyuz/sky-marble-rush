@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.ordino.skymarblerush"
+    namespace = "com.theordino.skymarblerush"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.ordino.skymarblerush"
+        applicationId "com.theordino.skymarblerush"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode((project.findProperty("versionCode") ?: "1").toString().toInteger())

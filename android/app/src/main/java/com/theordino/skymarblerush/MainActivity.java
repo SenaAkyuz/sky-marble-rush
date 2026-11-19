@@ -1,4 +1,4 @@
-package com.ordino.skymarblerush;
+package com.theordino.skymarblerush;
 
 import com.getcapacitor.BridgeActivity;
 

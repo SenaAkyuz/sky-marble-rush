@@ -13,7 +13,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.ordino.skymarblerush
+        bundle_identifier: com.theordino.skymarblerush
       vars:
         XCODE_PROJECT: ios/App/App.xcodeproj
         XCODE_SCHEME: App
@@ -51,7 +51,7 @@ workflows:
       groups:
         - google_play
       vars:
-        PACKAGE_NAME: com.ordino.skymarblerush
+        PACKAGE_NAME: com.theordino.skymarblerush
       node: 22
       java: 21
     scripts:

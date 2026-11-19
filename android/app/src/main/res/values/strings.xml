@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">Sky Marble Rush</string>
     <string name="title_activity_main">Sky Marble Rush</string>
-    <string name="package_name">com.ordino.skymarblerush</string>
-    <string name="custom_url_scheme">com.ordino.skymarblerush</string>
+    <string name="package_name">com.theordino.skymarblerush</string>
+    <string name="custom_url_scheme">com.theordino.skymarblerush</string>
     <!-- AdMob Android app ID (real) -->
     <string name="admob_app_id">ca-app-pub-5759922022739187~9340485074</string>
 </resources>
