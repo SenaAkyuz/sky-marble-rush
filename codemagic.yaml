@@ -71,3 +71,26 @@ workflows:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
         track: internal
         submit_as_draft: true
+
+  # First upload only: builds a signed AAB you download and upload to Play Console by hand.
+  # (Play's API cannot create an app's first release; after that, use android-release.)
+  android-first-build:
+    name: Android - first AAB (manual upload)
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      android_signing:
+        - sky_marble_upload
+      node: 22
+      java: 21
+    scripts:
+      - name: Install and build web
+        script: |
+          npm ci
+          npm run build
+          npx cap sync android
+      - name: Build AAB
+        script: |
+          cd android && chmod +x gradlew && ./gradlew bundleRelease -PversionCode=1
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
