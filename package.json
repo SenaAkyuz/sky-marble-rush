@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node build.mjs",
-    "shots": "node build.mjs --qa && node tools/shots.mjs && node build.mjs"
+    "shots": "node build.mjs --qa && node tools/store-shots.mjs && node build.mjs"
   },
   "keywords": [],
   "author": "",

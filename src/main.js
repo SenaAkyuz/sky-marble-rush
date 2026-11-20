@@ -49,10 +49,13 @@ const T = (k, vars) => { let s = (STRINGS[LANG] && STRINGS[LANG][k]) ?? STRINGS.
 // ================= renderer / scene =================
 const container = document.getElementById("game");
 let renderer;
-try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" }); }
+// Android WebViews are the slow case: no MSAA there, lower pixel-ratio cap, adaptive resolution (see adaptQuality).
+const ANDROID = /Android/i.test(navigator.userAgent);
+const perf = { scale: 1, noShadow: false, tuned: false };
+try { renderer = new THREE.WebGLRenderer({ antialias: !ANDROID, powerPreference: "high-performance" }); }
 catch (e) { document.getElementById("loader").innerHTML = '<div class="nogl">WebGL is not available.<br><button id="retry" data-ui>Retry</button></div>'; document.getElementById("retry")?.addEventListener("click", () => location.reload()); window.__game = { info: () => ({ st: "boot", nogl: true }) }; throw e; }
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.domElement.setAttribute("data-game-scene", "");
 container.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
@@ -233,7 +236,7 @@ function changeSetting(k, v) {
 }
 function applySettings() { base.language = SAVE.settings.language; base.difficulty = SAVE.settings.difficulty; recomputeP(); LANG = pickLang(); document.documentElement.lang = LANG; UI.relabel(); applyVolumes(); applyQuality(); G.lessonDone = !!SAVE.lessonDone; }
 let qualityLow = false;
-function applyQuality() { const want = SAVE && SAVE.settings.quality === "low"; if (want === qualityLow && renderer.shadowMap.enabled === !want) return; qualityLow = want; renderer.shadowMap.enabled = !want; scene.traverse((o) => { const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach((mm) => (mm.needsUpdate = true)); }); layout(); }
+function applyQuality() { const want = !!((SAVE && SAVE.settings.quality === "low") || perf.noShadow); if (want === qualityLow && renderer.shadowMap.enabled === !want) return; qualityLow = want; renderer.shadowMap.enabled = !want; scene.traverse((o) => { const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach((mm) => (mm.needsUpdate = true)); }); layout(); }
 function applySkin() { const sk = CONFIG.skins.find((x) => x.id === (SAVE && SAVE.skin)) || CONFIG.skins[0]; base.playerColor = sk.a; base.playerColor2 = sk.b; recomputeP(); ballMat.map.dispose(); ballMat.map = marbleTexture(P.playerColor, P.playerColor2); ballMat.needsUpdate = true; }
 function buySkin(id) { const sk = CONFIG.skins.find((x) => x.id === id); if (!sk || SAVE.skins.includes(id)) return; if (SAVE.coins < sk.price) { UI.toast(T("shop.need")); return; } SAVE.coins -= sk.price; SAVE.skins.push(id); SAVE.skin = id; writeSave(SAVE); audio.play("power"); applySkin(); UI.refreshMenus(menuState()); }
 function useSkin(id) { if (!SAVE.skins.includes(id)) return; SAVE.skin = id; writeSave(SAVE); applySkin(); UI.refreshMenus(menuState()); }
@@ -253,8 +256,8 @@ function onDown(e) {
 function onMove(e) {
   if (ptr.id !== e.pointerId) return;
   const dx = e.clientX - ptr.x, dy = e.clientY - ptr.y; ptr.x = e.clientX; ptr.y = e.clientY;
-  const d = (dx * axisScreen.x + dy * axisScreen.y) / (axisScreen.len * axisScreen.len);
-  input.targetU += d * 1.45;
+  const d = (dx * axisScreen.x + dy * axisScreen.y) / axisScreen.len; // finger movement in world units
+  input.targetU += d; // ball follows the finger 1:1 on screen
 }
 function onUp(e) { if (ptr.id !== e.pointerId) return; ptr.id = null; input.hold = false; }
 container.addEventListener("pointerdown", onDown); window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp);
@@ -499,7 +502,7 @@ let W = 390, H = 844, baseVFov = 58;
 function layout() {
   const r = container.getBoundingClientRect(); W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
   if (r.width < 2 || r.height < 2) { G.zero = true; return; } G.zero = false;
-  const dpr = Math.max(0.5, Math.min(2, 1000 / Math.min(W, H)));
+  const dpr = Math.max(0.5, Math.min(ANDROID ? 1.5 : 2, 1000 / Math.min(W, H)) * perf.scale * (SAVE && SAVE.settings.quality === "low" ? 0.75 : 1));
   renderer.setPixelRatio(dpr); renderer.setSize(W, H, false); renderer.domElement.style.width = W + "px"; renderer.domElement.style.height = H + "px";
   camera.aspect = W / H;
   // fixed horizontal FOV from the design frame, vertical derived and clamped
@@ -722,11 +725,26 @@ const __game = {
 
 // ================= loop =================
 let lastT = 0;
+// Adaptive quality: if the phone cannot hold ~50 fps while playing, lower the render resolution step by step (min 55%),
+// then switch shadows off. The result is saved so the next launch starts at the right level.
+let perfLow = 0, perfCool = 4;
+function adaptQuality(dt) {
+  if (G.st !== "play" || paused || G.zero) { perfLow = 0; return; }
+  if ((perfCool -= dt) > 0) return;
+  if (fpsEMA >= 50) { perfLow = Math.max(0, perfLow - dt); return; }
+  if ((perfLow += dt) < 1.5) return;
+  perfLow = 0; perfCool = 3; perf.tuned = true;
+  if (perf.scale > 0.56) perf.scale = Math.max(0.55, perf.scale - 0.15);
+  else if (!perf.noShadow) perf.noShadow = true; else return;
+  applyQuality(); layout(); if (SAVE) { SAVE.perf = { scale: perf.scale, noShadow: perf.noShadow }; writeSave(SAVE); }
+}
 function frame(ts) {
   requestAnimationFrame(frame);
+  if (TEST && URLP.has("still")) return; // QA: only render when the test harness steps (fast, stable screenshots)
   if (lastRaf) { const iv = (ts - lastRaf) / 1000; if (iv > 0) fpsEMA = fpsEMA * 0.9 + (1 / iv) * 0.1; } lastRaf = ts;
   if (G.zero || paused) { lastT = 0; return; }
   let dt = lastT ? (ts - lastT) / 1000 : 1 / 60; lastT = ts; dt = clamp(dt, 0, 0.05);
+  if (!TEST) adaptQuality(dt);
   if (TEST && !URLP.has("live")) { renderFrame(); return; }
   if (TRAILER || (TEST && URLP.has("autoplay"))) { const inp = botInput(); applyBotInput(inp); if (UI.levelCardShown && G.phase === "clear") onNext(); }
   const n = Math.max(1, Math.ceil(dt / (1 / 60))); for (let i = 0; i < n; i++) step(dt / n);
@@ -737,7 +755,9 @@ function frame(ts) {
 async function boot() {
   SAVE = await loadSave();
   if (TEST && !URLP.has("keepsave")) SAVE = { ...SAVE, unlocked: 999, settings: { ...SAVE.settings, language: base.language, difficulty: base.difficulty } };
-  applySettings(); applySkin();
+  if (SAVE.perf) { perf.scale = clamp(Number(SAVE.perf.scale) || 1, 0.55, 1); perf.noShadow = !!SAVE.perf.noShadow; }
+  else if (ANDROID && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3)) { perf.scale = 0.8; perf.noShadow = true; }
+  applySettings(); applySkin(); applyQuality();
   layout(); startRun();
   initNative({ onBack: handleBack, onPause: () => { pauseFlags.app = true; appHidden(true); updatePause(); }, onResume: () => { pauseFlags.app = false; updatePause(); } });
   if (TEST && !URLP.has("menu")) playLevel(clamp((Number(URLP.get("level")) || 1) - 1, 0, TOTAL_LEVELS - 1));

@@ -2,7 +2,7 @@ window.CONFIG = {
   meta: { title: "Sky Marble Rush", slug: "sky-marble-rush", version: "v01", mode: "APP", appVersion: "1.0.0", seed: 41873, privacyUrl: { en: "https://www.theordino.com/sky-marble-rush/privacy", tr: "https://www.theordino.com/sky-marble-rush/gizlilik" } },
   // AdMob. testMode:true => Google test ads everywhere. Paste real unit IDs and set testMode:false ONLY for the store build.
   ads: {
-    testMode: true, // !!! MAĞAZA BUILD'İNDEN ÖNCE false YAP !!!
+    testMode: false, // false = GERÇEK reklamlar (mağaza sürümü). Kendi telefonunda test ederken reklamlara DOKUNMA; geliştirirken true yap.
     android: { appId: "ca-app-pub-5759922022739187~9340485074", interstitial: "ca-app-pub-5759922022739187/9148913381", rewarded: "ca-app-pub-5759922022739187/3815202365" },
     ios: { appId: "ca-app-pub-5759922022739187~6282629788", interstitial: "ca-app-pub-5759922022739187/7428190498", rewarded: "ca-app-pub-5759922022739187/2343384778" },
     interstitialFromLevel: 3, interstitialEveryRounds: 3, interstitialMinGapSec: 90
