@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { THEMES, tileTexture, sideTexture, stripeTexture, chevronTexture, fieldTexture, iconTexture, PU_COLORS, buildScenery, BANDS } from "./theme.js";
+import { THEMES, tileTexture, sideTexture, stripeTexture, chevronTexture, fieldTexture, iconTexture, PU_COLORS, buildScenery, BANDS, coinTexture, coinGeometry } from "./theme.js";
 
 export function mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -284,8 +284,8 @@ export function createLevel(stage, P, seed, envMap) {
     const m = new THREE.Mesh(new RoundedBoxGeometry(w - 0.5, 0.12, 2.0, 2, 0.05), mat); m.position.copy(L.P(pd.z, 0, 0.04)); m.rotation.y = L.yaw(pd.z); root.add(m); pd.mesh = m; pd.mat = mat;
   }
   // ----- coins (instanced) -----
-  const coinGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.09, 24); coinGeo.rotateX(Math.PI / 2);
-  const coinMat = new THREE.MeshStandardMaterial({ color: P.coinColor, roughness: 0.22, metalness: 0.85, emissive: "#B07800", emissiveIntensity: 0.35, envMap, envMapIntensity: 1.2 });
+  const coinGeo = coinGeometry();
+  const coinMat = new THREE.MeshStandardMaterial({ color: P.coinColor, map: coinTexture(), roughness: 0.2, metalness: 0.9, emissive: "#C07A00", emissiveIntensity: 0.32, envMap, envMapIntensity: 1.35 });
   L.coinMat = coinMat;
   const coinIM = new THREE.InstancedMesh(coinGeo, coinMat, coinRows.length); coinIM.castShadow = true;
   coinRows.forEach((c, i) => L.coins.push({ z: c[0], u: c[1], y: c[2], taken: false, i, pos: L.P(c[0], c[1], c[2]) }));

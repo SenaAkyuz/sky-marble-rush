@@ -1,7 +1,9 @@
 const ICON = {
-  heart: '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4h2c.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z" fill="#fff"></path></svg>',
+  heart: '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4h2c.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z" fill="url(#gHeart)" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"></path><path d="M6.2 8.4c.5-1.3 1.5-2 2.6-2" stroke="#fff" stroke-opacity=".85" stroke-width="1.7" stroke-linecap="round" fill="none"></path></svg>',
   clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8.2" fill="none" stroke="#fff" stroke-width="2.6"></circle><path d="M12 13V8.6M12 13l3.2 2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"></path><rect x="9.5" y="1.6" width="5" height="2.6" rx="1" fill="#fff"></rect></svg>',
-  coin: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#fff"></circle><circle cx="12" cy="12" r="6.2" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2"></circle><path d="M12 7.5v9" stroke="rgba(0,0,0,.22)" stroke-width="2.4" stroke-linecap="round"></path></svg>',
+  coin: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="10" fill="#B86A00"></circle><circle cx="12" cy="11.8" r="10" fill="url(#gCoin)"></circle><circle cx="12" cy="11.8" r="7" fill="url(#gCoinIn)" stroke="#E39A10" stroke-width="1.1"></circle><path d="M12 7.6l1.25 2.6 2.85.35-2.1 1.95.55 2.8L12 13.9l-2.55 1.4.55-2.8-2.1-1.95 2.85-.35z" fill="#E08E00" opacity=".9"></path><path d="M5.6 9.2a6.9 6.9 0 0 1 4.6-4.3" stroke="#fff" stroke-opacity=".9" stroke-width="1.7" stroke-linecap="round" fill="none"></path></svg>',
+  starG: '<svg viewBox="0 0 24 24"><path d="M12 2.2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17.2l-6 3.3 1.3-6.7-5-4.6 6.8-.8z" fill="url(#gStar)" stroke="#D98300" stroke-width="1.1" stroke-linejoin="round"></path><path d="M9.2 9.6l1.4-2.9" stroke="#fff" stroke-opacity=".85" stroke-width="1.5" stroke-linecap="round"></path></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M8 4.8v14.4c0 .9 1 1.4 1.7.9l10-7.2c.6-.4.6-1.4 0-1.8l-10-7.2C9 3.4 8 3.9 8 4.8z" fill="currentColor"></path></svg>',
   sound: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"></path><path d="M16 8.5c1.6 1.8 1.6 5.2 0 7M18.6 6c3 3.2 3 8.8 0 12" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg>',
   mute: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"></path><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"></path></svg>',
   boost: '<svg viewBox="0 0 24 24"><path d="M13.5 2L5 13.5h5.5L9.5 22 19 9.5h-5.6z" fill="#fff"></path></svg>',
@@ -126,7 +128,7 @@ export function buildUI(o) {
   function openCard(cfg) {
     ui.cardShown = true; ec.classList.remove("show"); void ec.offsetWidth; ec.classList.add("show");
     const bs = ["bAd", "bNext", "bReplay", "bMenu"]; bs.forEach((b) => ($(b).dataset.ready = "")); setTimeout(() => bs.forEach((b) => ($(b).dataset.ready = 1)), 900);
-    $("ecTitle").textContent = cfg.title; $("ecSub").textContent = cfg.sub; $("ecReward").textContent = cfg.reward || ""; $("ecReward").style.display = cfg.reward ? "" : "none";
+    $("ecTitle").textContent = cfg.title; $("ecSub").textContent = cfg.sub; $("ecReward").innerHTML = cfg.reward ? ICON.coin + "<span>" + esc(cfg.reward) + "</span>" : ""; $("ecReward").style.display = cfg.reward ? "" : "none";
     $("ecStars").innerHTML = cfg.stars ? [0, 1, 2].map((i) => `<span class="st ${i < cfg.stars ? "on" : ""}" style="animation-delay:${0.45 + i * 0.18}s">${ICON.star}</span>`).join("") : ""; $("ecStars").style.display = cfg.stars ? "" : "none";
     $("bNext").textContent = cfg.outcome === "win" ? T("ui.menu") : T("ui.next"); $("bReplay").textContent = cfg.win ? T("ui.playAgain") : T("ui.replay"); $("bMenu").textContent = T("ui.menu");
     $("bNext").style.display = cfg.showNext === false ? "none" : ""; $("bMenu").style.display = cfg.outcome === "win" ? "none" : ""; $("bMenu").className = "btn " + (cfg.outcome === "level" ? "link" : "secondary");
@@ -137,13 +139,13 @@ export function buildUI(o) {
   }
   ui.showLevelCard = (c) => { ui.levelCardShown = true; ui._bonus = false; ui._lastTotal = c.total; ui._card = () => openCard({ title: T("end.level.title"), sub: T("end.level.sub", { coins: c.coins, mult: c.mult, total: c.total }) + (c.best ? " · " + T("end.best") : ""), reward: T("end.reward", { total: ui._bonus ? c.total * 2 : c.total }), stars: c.stars, primary: c.hasNext ? "next" : "replay", showNext: c.hasNext, win: true, outcome: "level", ad: c.ad && !ui._bonus ? "bonus" : "", adTotal: c.total }); ui._card(); };
   ui.showEndCard = (c) => { ui.levelCardShown = false; ui._card = () => openCard({ ...c, win: c.outcome === "win", showNext: c.outcome === "win" }); ui._card(); };
-  ui.adDone = () => { ui._bonus = true; $("bAd").style.display = "none"; ec.dataset.ad = ""; if (ui.levelCardShown && ui._lastTotal != null) $("ecReward").textContent = T("end.reward", { total: ui._lastTotal * 2 }); };
+  ui.adDone = () => { ui._bonus = true; $("bAd").style.display = "none"; ec.dataset.ad = ""; if (ui.levelCardShown && ui._lastTotal != null) $("ecReward").innerHTML = ICON.coin + "<span>" + esc(T("end.reward", { total: ui._lastTotal * 2 })) + "</span>"; };
   ui.hideCard = () => { ui.cardShown = false; ui.levelCardShown = false; ui._card = null; ec.classList.remove("show"); };
   // ---- menus ----
   const menu = $("menu"); ui.menuScreen = null;
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const starRow = (n, cls = "") => `<span class="mstars ${cls}">${[0, 1, 2].map((i) => `<i class="${i < n ? "on" : ""}">${ICON.star}</i>`).join("")}</span>`;
-  const pills = (st) => `<div class="mpills"><span class="mpill">${ICON.star}<b>${st.starsTotal}</b></span><span class="mpill gold">${ICON.coin}<b>${st.save.coins}</b></span></div>`;
+  const pills = (st) => `<div class="mpills"><span class="mpill">${ICON.starG}<b>${st.starsTotal}</b></span><span class="mpill gold">${ICON.coin}<b>${st.save.coins}</b></span></div>`;
   const head = (title, st) => `<div class="mhead"><button class="mback" data-act="home" data-ui aria-label="${esc(T("ui.back"))}">${ICON.back}</button><h2>${esc(title)}</h2>${st ? pills(st) : ""}</div>`;
   const swatch = (sk) => `<span class="swatch" style="--a:${sk.a};--b:${sk.b}"></span>`;
   let confirmOpen = false;
@@ -151,14 +153,14 @@ export function buildUI(o) {
     const S = st.save; let h = "";
     if (sc === "home") {
       const cur = st.current; const world = st.worlds[Math.floor(cur / st.perWorld)];
-      h = `<div class="mscreen home">${pills(st)}<div class="logo"><div class="logo1">SKY MARBLE</div><div class="logo2">RUSH</div></div>
-        <div class="homebtns"><button class="btn primary big" data-act="play" data-i="${cur}" data-ui>${esc(T("ui.play"))}<small>${esc(T("lvl.n", { n: cur + 1 }))} · ${esc(T("lvl." + world))}</small></button>
-        <div class="iconrow"><button class="ibtn" data-act="levels" data-ui>${ICON.grid}<span>${esc(T("ui.levels"))}</span></button><button class="ibtn" data-act="shop" data-ui>${ICON.ball}<span>${esc(T("ui.shop"))}</span></button><button class="ibtn" data-act="settings" data-ui>${ICON.gear}<span>${esc(T("ui.settings"))}</span></button></div></div></div>`;
+      h = `<div class="mscreen home">${pills(st)}<div class="logo"><div class="logo1" data-t="SKY MARBLE">SKY MARBLE</div><div class="logo2" data-t="RUSH">RUSH</div></div>
+        <div class="homebtns"><button class="btn primary big" data-act="play" data-i="${cur}" data-ui><span class="plrow">${ICON.play}${esc(T("ui.play"))}</span><small>${esc(T("lvl.n", { n: cur + 1 }))} · ${esc(T("lvl." + world))}</small></button>
+        <div class="iconrow"><button class="ibtn" data-act="levels" data-ui><i class="ic ic-lv">${ICON.grid}</i><span>${esc(T("ui.levels"))}</span></button><button class="ibtn" data-act="shop" data-ui><i class="ic ic-sh">${ICON.ball}</i><span>${esc(T("ui.shop"))}</span></button><button class="ibtn" data-act="settings" data-ui><i class="ic ic-st">${ICON.gear}</i><span>${esc(T("ui.settings"))}</span></button></div></div></div>`;
     } else if (sc === "levels") {
       h = `<div class="mscreen panel">${head(T("ui.levels"), st)}<div class="mscroll">`;
       st.worlds.forEach((w, wi) => {
         const gate = st.gates[wi]; const open = st.starsTotal >= gate; let ws = 0; for (let k = 0; k < st.perWorld; k++) ws += S.stars[wi * st.perWorld + k] || 0;
-        h += `<section class="world w-${w} ${open ? "" : "locked"}"><div class="wtitle"><small>${esc(T("ui.world", { n: wi + 1 }))}</small><b>${esc(T("lvl." + w))}</b><span class="wst">${ICON.star}${ws}/${st.perWorld * 3}</span></div>`;
+        h += `<section class="world w-${w} ${open ? "" : "locked"}"><div class="wtitle"><small>${esc(T("ui.world", { n: wi + 1 }))}</small><b>${esc(T("lvl." + w))}</b><span class="wst">${ICON.starG}${ws}/${st.perWorld * 3}</span></div>`;
         if (!open) h += `<div class="wlock">${ICON.lock}${esc(T("ui.locked", { n: gate }))}</div>`;
         h += `<div class="lgrid">`;
         for (let k = 0; k < st.perWorld; k++) { const i = wi * st.perWorld + k; const un = open && i < S.unlocked; h += `<button class="ltile ${un ? "" : "off"} ${i === st.current ? "cur" : ""}" ${un ? `data-act="play" data-i="${i}"` : ""} data-ui><b>${i + 1}</b>${un ? starRow(S.stars[i] || 0) : `<span class="lk">${ICON.lock}</span>`}</button>`; }

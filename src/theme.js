@@ -142,6 +142,25 @@ export function chevronTexture(col, bg) {
   for (let i = 0; i < 2; i++) { const y = 20 + i * 64; g.beginPath(); g.moveTo(14, y + 40); g.lineTo(64, y); g.lineTo(114, y + 40); g.lineTo(114, y + 58); g.lineTo(64, y + 18); g.lineTo(14, y + 58); g.closePath(); g.fill(); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+
+// Coin face: light base (tinted by the material colour), embossed rim ring + star. 128px, one texture shared by all coins.
+export function coinTexture() {
+  const [c, g] = cv(128, 128); g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, 128, 128);
+  const star = (r1, r0) => { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? r0 : r1; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.closePath(); };
+  const rg = g.createRadialGradient(52, 48, 4, 64, 64, 44); rg.addColorStop(0, "#FFFFFF"); rg.addColorStop(1, "#E9D9B0"); g.fillStyle = rg; g.beginPath(); g.arc(64, 64, 44, 0, 7); g.fill();
+  g.lineWidth = 3; g.strokeStyle = "rgba(150,90,0,0.35)"; g.beginPath(); g.arc(64, 64, 40, 0, 7); g.stroke();
+  g.save(); g.translate(1.5, 2); star(27, 11); g.fillStyle = "rgba(130,70,0,0.45)"; g.fill(); g.restore();
+  g.save(); g.translate(-1, -1); star(27, 11); g.fillStyle = "#FFFFFF"; g.fill(); g.restore();
+  star(26, 10.5); const sg = g.createLinearGradient(40, 38, 88, 92); sg.addColorStop(0, "#FFFDF2"); sg.addColorStop(1, "#E6C98A"); g.fillStyle = sg; g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+// Coin body: lathe profile with raised rim and bevel; planar UVs so the face texture maps flat (rim samples the plain border).
+export function coinGeometry() {
+  const R = 0.34, T = 0.055; const pr = [[0, T * 0.62], [0.235, T * 0.62], [0.255, T], [0.315, T], [R, T * 0.55], [R, -T * 0.55], [0.315, -T], [0.255, -T], [0.235, -T * 0.62], [0, -T * 0.62]].map((p) => new THREE.Vector2(p[0], p[1])).reverse();
+  const geo = new THREE.LatheGeometry(pr, 32); const pos = geo.attributes.position, uv = geo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (R * 2 / 0.75), 0.5 - pos.getZ(i) / (R * 2 / 0.75));
+  geo.rotateX(Math.PI / 2); geo.computeVertexNormals(); return geo;
+}
 export const BANDS = [1, 2, 3, 4, 5, 6, 8, 10, 15, 20];
 const RAINBOW = ["#FF3B4E", "#FF7A2F", "#FFB52E", "#FFE23B", "#9BE04A", "#2FD38A", "#2FC7E8", "#3F86FF", "#7A5CFF", "#D04FFF"];
 export function fieldTexture() {
